@@ -10,7 +10,7 @@ except ImportError:
     print("Warning: python-dotenv not installed. Ensure API key is set")
     MODEL_NAME = "gemini-2.0-flash"
 
-from google.adk.agents import LlmAgent, SequentialAgent
+from google.adk.agents import LlmAgent, SequentialAgent, BaseAgent
 from google.adk.tools import google_search
 
 # --- Updated Imports for New Agents ---
@@ -105,6 +105,37 @@ campaign_agent = LlmAgent(
 )
 
 
+#class SilentSequentialAgent(BaseAgent):
+#    """Sequential agent that suppresses intermediate outputs and only yields final agent events.
+#   
+#   Behavior: Runs all sub-agents sequentially but only yields events from the last sub-agent.
+#   This prevents the UI from displaying intermediate outputs while preserving all in-memory
+#   state updates (so later agents still have access to earlier results).
+#   """
+#
+#    async def _run_async_impl(self, ctx):
+#        """Run all sub-agents; only yield events from the final one."""
+#        for i, sub_agent in enumerate(self.sub_agents):
+#            if i == len(self.sub_agents) - 1:
+#                # Final sub-agent: forward all events to caller (UI)
+#                async for event in sub_agent.run_async(ctx):
+#                    yield event
+#            else:
+#                # Intermediate sub-agents: consume events but do not yield them
+#                async for _ in sub_agent.run_async(ctx):
+#                    pass
+#
+#    async def _run_live_impl(self, ctx):
+#        """Run all sub-agents in live mode; only yield events from the final one."""
+#        for i, sub_agent in enumerate(self.sub_agents):
+#            if i == len(self.sub_agents) - 1:
+#                async for event in sub_agent.run_live(ctx):
+#                    yield event
+#            else:
+#                async for _ in sub_agent.run_live(ctx):
+#                    pass
+
+
 # --- Sequential Orchestrator ---
 # Updated to include new agents in a logical marketing workflow
 campaign_orchestrator = SequentialAgent(
@@ -119,7 +150,7 @@ campaign_orchestrator = SequentialAgent(
         image_generation_agent,    # NEW: Specify required visual asset
         ad_creative_agent,         # Generate text copy
         cost_estimation_agent,     # Budget based on platforms/assets
-        campaign_agent,            # Compile report
+        campaign_agent,            # Compile report (FINAL - only this displays in UI)
     ]
 )
 
